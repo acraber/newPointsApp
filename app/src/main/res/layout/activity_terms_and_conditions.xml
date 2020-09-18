@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".MainActivity"
+    android:gravity="center"
+    android:background="#FFFFFF"
+    >
+    <TextView
+        android:gravity="center_horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Los Amigos and any related parties reserve the right to refuse points to any person, with or without reason.
+\nLos amigos also reserves the right to declare any past earned points as voided with or without reason."
+        android:textColor="#000000"
+        android:textSize="35sp"
+        android:paddingBottom="25dp"
+        >
+
+    </TextView>
+
+    <Button
+        android:id="@+id/goBackButton"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/rounded_button_not_red"
+        android:text="Go back to main menu"
+        android:textColor="@android:color/white"
+        android:textSize="15dp" />
+
+
+
+
+</LinearLayout>
