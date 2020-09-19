@@ -14,5 +14,6 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, PointsSystem::class.java)
             startActivity(intent)
         }
+
     }
 }
