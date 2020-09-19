@@ -16,31 +16,31 @@ import kotlinx.android.synthetic.main.activity_points_system.*
 
 class PointsSystem : AppCompatActivity() {
 
-    var pointsToShowThatAreAdding = 0
-    var pointsToAdd = 0
-    var doneWithShowingSpinner = false
+
+    val numberOfPointsAllowed = 50
     val thisTable = "SecondPointsTable"
     val methodsHandler = Methods()
+    val qrCode = "1191512"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_points_system)
         scanBtn.setOnClickListener{
-            doneWithShowingSpinner = false
+            methodsHandler.doneWithShowingSpinner = false
         }//27
 
 
-        methodsHandler.showButtonIfUserHasFiftyPoints(thisTable, redeemPointsBtn, this)
+        methodsHandler.showButtonIfUserHasFiftyPoints(thisTable, redeemPointsBtn, this, numberOfPointsAllowed)
 
-        methodsHandler.setProgressBarAndPointsNumber(methodsHandler.getPointsValueFromDb(thisTable, this),progressBar,pointsNumberTextView)
+        methodsHandler.setProgressBarAndPointsNumber(methodsHandler.getPointsValueFromDb(thisTable, this), progressBar, pointsNumberTextView, numberOfPointsAllowed)
 
         scanBtn.setOnClickListener{
-            methodsHandler.show(thisTable,this, this)
+            methodsHandler.show(thisTable,this, this, numberOfPointsAllowed)
         }
 
         redeemPointsBtn.setOnClickListener {
             methodsHandler.redeemPoints(thisTable, progressBar, pointsNumberTextView,
-                redeemPointsBtn, this)
+                redeemPointsBtn, this, numberOfPointsAllowed)
         }
 
     }
@@ -49,15 +49,15 @@ class PointsSystem : AppCompatActivity() {
         val result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data)
         if (result != null) {
             if (result.contents != null) {
-                if(result.contents == "1191512") {
+                if(result.contents == qrCode) {
                     methodsHandler.addPointsToDb(methodsHandler.pointsToAdd, thisTable, this, application)//24
-                    methodsHandler.showButtonIfUserHasFiftyPoints(thisTable, redeemPointsBtn, this)
+                    methodsHandler.showButtonIfUserHasFiftyPoints(thisTable, redeemPointsBtn, this, numberOfPointsAllowed)
 
                     methodsHandler.setProgressBarAndPointsNumber(methodsHandler.getPointsValueFromDb(thisTable, this),
-                        progressBar, pointsNumberTextView)
+                        progressBar, pointsNumberTextView, numberOfPointsAllowed)
 
-                    Toast.makeText(this, "$pointsToShowThatAreAdding Points added", Toast.LENGTH_LONG).show()
-                    pointsToShowThatAreAdding = 0
+                    Toast.makeText(this, "${methodsHandler.pointsToShowThatAreAdding} Points added", Toast.LENGTH_LONG).show()
+                    methodsHandler.pointsToShowThatAreAdding = 0
                     methodsHandler.pointsToAdd = 0
 
                     if(methodsHandler.isThereMoreThanOneSetOfPoints(thisTable, this)){
