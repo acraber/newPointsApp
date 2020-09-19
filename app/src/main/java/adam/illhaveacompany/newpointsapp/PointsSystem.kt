@@ -17,7 +17,7 @@ import kotlinx.android.synthetic.main.activity_points_system.*
 class PointsSystem : AppCompatActivity() {
 
     var pointsToShowThatAreAdding = 0
-    var pointsToAdd : Int = 0
+    var pointsToAdd = 0
     var doneWithShowingSpinner = false
     val thisTable = "SecondPointsTable"
     val methodsHandler = Methods()
@@ -27,13 +27,16 @@ class PointsSystem : AppCompatActivity() {
         setContentView(R.layout.activity_points_system)
         scanBtn.setOnClickListener{
             doneWithShowingSpinner = false
-            show(thisTable)
         }//27
 
 
         methodsHandler.showButtonIfUserHasFiftyPoints(thisTable, redeemPointsBtn, this)
 
         methodsHandler.setProgressBarAndPointsNumber(methodsHandler.getPointsValueFromDb(thisTable, this),progressBar,pointsNumberTextView)
+
+        scanBtn.setOnClickListener{
+            methodsHandler.show(thisTable,this, this)
+        }
 
         redeemPointsBtn.setOnClickListener {
             methodsHandler.redeemPoints(thisTable, progressBar, pointsNumberTextView,
@@ -47,7 +50,7 @@ class PointsSystem : AppCompatActivity() {
         if (result != null) {
             if (result.contents != null) {
                 if(result.contents == "1191512") {
-                    methodsHandler.addPointsToDb(pointsToAdd, thisTable, this, application)//24
+                    methodsHandler.addPointsToDb(methodsHandler.pointsToAdd, thisTable, this, application)//24
                     methodsHandler.showButtonIfUserHasFiftyPoints(thisTable, redeemPointsBtn, this)
 
                     methodsHandler.setProgressBarAndPointsNumber(methodsHandler.getPointsValueFromDb(thisTable, this),
@@ -55,7 +58,7 @@ class PointsSystem : AppCompatActivity() {
 
                     Toast.makeText(this, "$pointsToShowThatAreAdding Points added", Toast.LENGTH_LONG).show()
                     pointsToShowThatAreAdding = 0
-                    pointsToAdd = 0
+                    methodsHandler.pointsToAdd = 0
 
                     if(methodsHandler.isThereMoreThanOneSetOfPoints(thisTable, this)){
                         val databaseHandler = DatabaseHandler(this)
@@ -72,62 +75,6 @@ class PointsSystem : AppCompatActivity() {
             super.onActivityResult(requestCode, resultCode, data)
         }
     } //7
-
-    private fun show(tableName: String) {
-        val d = Dialog(this)
-        d.setTitle("NumberPicker")
-        d.setContentView(R.layout.dialog)
-        val b1: Button = d.findViewById(R.id.setButton) as Button
-        val b2: Button = d.findViewById(R.id.cancelButton) as Button
-        val numberPicker = d.findViewById(R.id.numberPicker1) as NumberPicker
-        numberPicker.maxValue = 25
-        numberPicker.minValue = 1
-        numberPicker.wrapSelectorWheel = false
-
-        b1.setOnClickListener{
-            var totalPointsAfterAdding = 0
-            pointsToAdd = numberPicker.value
-            d.dismiss()
-            doneWithShowingSpinner = true
-            totalPointsAfterAdding = pointsToAdd + methodsHandler.getPointsValueFromDb(tableName, this)
-            if(totalPointsAfterAdding >= 50){
-                pointsToShowThatAreAdding = 50 - methodsHandler.getPointsValueFromDb(tableName, this)
-            }else{
-                pointsToShowThatAreAdding = pointsToAdd
-            }
-
-            val builder = AlertDialog.Builder(this)
-            builder.setTitle("Adding ${pointsToShowThatAreAdding} points")
-            builder.setPositiveButton("SCAN") { dialogInterface: DialogInterface, i: Int ->
-                Toast.makeText(this, "$pointsToShowThatAreAdding points are being added", Toast.LENGTH_LONG).show()
-                methodsHandler.scanCode(this)
-            }
-            builder.setNegativeButton("GO BACK") { dialogInterface: DialogInterface, i: Int ->
-                Toast.makeText(this, "Scan cancelled", Toast.LENGTH_SHORT).show()
-            }
-
-            if(totalPointsAfterAdding >= 50){
-                builder.setMessage("A Los Amigos employee must verify points before scanning.\n\nThe maximum total points allowed is 50\n\n" +
-                        "Any points above a total of 50 will not be added")
-                totalPointsAfterAdding = 0
-                builder.show()
-            }else{
-                builder.setMessage("A Los Amigos employee must verify points before scanning.")
-                totalPointsAfterAdding = 0
-                builder.show()
-            }
-
-        }//31 and also //6 earlier
-
-        b2.setOnClickListener {
-            d.dismiss()
-        }
-        d.show()
-    }//26
-
-
-
-
 
 
 
