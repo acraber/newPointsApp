@@ -2,21 +2,21 @@ package adam.illhaveacompany.newpointsapp
 
 import android.animation.ObjectAnimator
 import android.app.Activity
-import android.app.Application
 import android.app.Dialog
 import android.content.Context
 import android.content.DialogInterface
-import android.content.Intent
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
 import com.google.zxing.integration.android.IntentIntegrator
-import kotlinx.android.synthetic.main.activity_points_system.*
 
 class Methods() {
+   var doneWithShowingSpinner = false
+   var pointsToShowThatAreAdding = 0
+   var pointsToAdd = 0
+   var totalPointsAfterAdding = 0
 
-   fun isThereMoreThanOneSetOfPoints(tableName: String, context: Context): Boolean {
+   private fun isThereMoreThanOneSetOfPoints(tableName: String, context: Context): Boolean {
       //returns whether there's two sets of points - found from DatabaseHandler's function
       val databaseHandler = DatabaseHandler(context)
       val twoSetsOfPoints = databaseHandler.areThereMoreThanOneSetOfPoints(tableName)
@@ -24,7 +24,7 @@ class Methods() {
       return twoSetsOfPoints
    }//17 - checks if there's more than one set of points in the database
 
-   fun scanCode(activity: Activity) {
+   private fun scanCode(activity: Activity) {
       val integrator = IntentIntegrator(activity)
       integrator.captureActivity = CaptureAct::class.java
       integrator.setOrientationLocked(false)
@@ -33,28 +33,33 @@ class Methods() {
       integrator.initiateScan()
    } //5
 
-   fun areTherePointsInTheDatabase(tableName: String, context: Context) : Boolean {
+   private fun areTherePointsInTheDatabase(tableName: String, context: Context): Boolean {
       val dbHandler = DatabaseHandler(context)
       val areTherePoints = dbHandler.areTherePoints(tableName)
       dbHandler.close()
       return areTherePoints
    }//19
 
-   fun getPointsValueFromDb(tableName: String, context: Context) : Int {
+   fun getPointsValueFromDb(tableName: String, context: Context): Int {
       var lastPointsValue = 0
-      if(areTherePointsInTheDatabase(tableName, context)){
+      if (areTherePointsInTheDatabase(tableName, context)) {
          val databaseHandler = DatabaseHandler(context)
          val pointsValueList = databaseHandler.getPointsValues(tableName)
          val lastPointsValueRow = pointsValueList[pointsValueList.size - 1]
          lastPointsValue = lastPointsValueRow.numberOfPoints
-      }else{
+      } else {
          lastPointsValue = 0
       }
       return lastPointsValue
    }//18 -- checks if there's points in the database. If there are, it returns the points. If not, it returns 0
 
-   fun addPointsToDb(points: Int, tableName: String, thisContext: Context, applicationContext: Context) {
-      if(areTherePointsInTheDatabase(tableName, thisContext)) {
+   private fun addPointsToDb(
+      points: Int,
+      tableName: String,
+      thisContext: Context,
+      applicationContext: Context
+   ) {
+      if (areTherePointsInTheDatabase(tableName, thisContext)) {
          val databaseHandler = DatabaseHandler(thisContext)
          val status = databaseHandler.addSecondaryPoints(points, tableName)
 
@@ -63,13 +68,14 @@ class Methods() {
             Toast.makeText(applicationContext, "Record save failed", Toast.LENGTH_LONG).show()
          }
          databaseHandler.close()
-      }else{
+      } else {
          val databaseHandler = DatabaseHandler(thisContext)
          val status = databaseHandler.addFirstPoints(Points(0, points), tableName)
 
-         if(status > -1) {
-            Toast.makeText(applicationContext, "Points Successfully Added", Toast.LENGTH_LONG).show()
-         }else{
+         if (status > -1) {
+            Toast.makeText(applicationContext, "Points Successfully Added", Toast.LENGTH_LONG)
+               .show()
+         } else {
             Toast.makeText(applicationContext, "Record save failed", Toast.LENGTH_LONG).show()
          }
          databaseHandler.close()
@@ -77,42 +83,60 @@ class Methods() {
    }//23
 
 
-   fun showButtonIfUserHasFiftyPoints(tableName: String, redeemPointsbtnButton: Button, thisContext: Context){
+   fun showButtonIfUserHasFiftyPoints(
+      tableName: String,
+      redeemPointsbtnButton: Button,
+      thisContext: Context,
+      numberOfPointsAllowed: Int
+   ) {
       val numberOfPoints = getPointsValueFromDb(tableName, thisContext)
-      if(numberOfPoints >= 50){
+      if (numberOfPoints >= numberOfPointsAllowed) {
          redeemPointsbtnButton.visibility = View.VISIBLE
-      }else{
+      } else {
          redeemPointsbtnButton.visibility = View.GONE
       }
 
 
    }
 
-   fun setProgressBarAndPointsNumber(numberOfPoints: Int, progressBar: ProgressBar, pointsNumberTextView: TextView) {
-      progressBar.max = 500
+   fun setProgressBarAndPointsNumber(
+      numberOfPoints: Int,
+      progressBar: ProgressBar,
+      pointsNumberTextView: TextView,
+      numberOfPointsAllowed: Int
+   ) {
+      progressBar.max = numberOfPointsAllowed*10
 
-      if(numberOfPoints == 0)
-      {
+      if (numberOfPoints == 0) {
          pointsNumberTextView.text = '0'.toString()
          ObjectAnimator.ofInt(progressBar, "progress", 0).setDuration(2000).start()
-      }else{
+      } else {
          pointsNumberTextView.text = numberOfPoints.toString()
-         ObjectAnimator.ofInt(progressBar, "progress", numberOfPoints*10).setDuration(2000).start()
+         ObjectAnimator.ofInt(progressBar, "progress", numberOfPoints * 10).setDuration(2000)
+            .start()
       }
    }
 
-   fun redeemPointsBuilder(tableName: String, progressBar: ProgressBar, pointsNumberTextView: TextView,
-                                   redeemPointsBtn: Button, thisContext: Context){
+   private fun redeemPointsBuilder(
+      tableName: String, progressBar: ProgressBar, pointsNumberTextView: TextView,
+      redeemPointsBtn: Button, thisContext: Context, numberOfPointsAllowed: Int
+   ) {
       val builder2 = AlertDialog.Builder(thisContext)
       builder2.setTitle("Redeeming Points")
-      builder2.setMessage("Are you sure you would like to redeem your points?\n\nThis can only be done once\n\nIf you press yes " +
-              "away from a Los Amigos employee you will lose your points with no refund.")
+      builder2.setMessage(
+         "Are you sure you would like to redeem your points?\n\nThis can only be done once\n\nIf you press yes " +
+                 "away from a Los Amigos employee you will lose your points with no refund."
+      )
       builder2.setPositiveButton("YES") { dialogInterface: DialogInterface, i: Int ->
          val db = DatabaseHandler(thisContext)
-         db.addFirstPoints(Points(0,0), tableName)
+         db.addFirstPoints(Points(0, 0), tableName)
          db.close()
-         setProgressBarAndPointsNumber(getPointsValueFromDb(tableName, thisContext), progressBar, pointsNumberTextView)
-         showButtonIfUserHasFiftyPoints(tableName, redeemPointsBtn, thisContext)
+         setProgressBarAndPointsNumber(
+            getPointsValueFromDb(tableName, thisContext),
+            progressBar,
+            pointsNumberTextView, numberOfPointsAllowed
+         )
+         showButtonIfUserHasFiftyPoints(tableName, redeemPointsBtn, thisContext, numberOfPointsAllowed)
          Toast.makeText(thisContext, "Points removed from account", Toast.LENGTH_SHORT).show()
          val builder4 = AlertDialog.Builder(thisContext)
          builder4.setTitle("SHOW TO EMPLOYEE")
@@ -134,19 +158,28 @@ class Methods() {
       builder2.show()
    }
 
-   fun redeemPoints(thisTable: String, progressBar: ProgressBar, pointsNumberTextView: TextView,
-                            redeemPointsBtn: Button, thisContext: Context){
-      if(getPointsValueFromDb(thisTable, thisContext) >= 50){
-         redeemPointsBuilder(thisTable, progressBar,pointsNumberTextView, redeemPointsBtn, thisContext)
-      }else{
-         Toast.makeText(thisContext, "There are not enough points to redeem", Toast.LENGTH_SHORT).show()
+   fun redeemPoints(
+      thisTable: String, progressBar: ProgressBar, pointsNumberTextView: TextView,
+      redeemPointsBtn: Button, thisContext: Context, numberOfPointsAllowed: Int
+   ) {
+      if (getPointsValueFromDb(thisTable, thisContext) >= numberOfPointsAllowed) {
+         redeemPointsBuilder(
+            thisTable,
+            progressBar,
+            pointsNumberTextView,
+            redeemPointsBtn,
+            thisContext,
+            numberOfPointsAllowed
+         )
+      } else {
+         Toast.makeText(thisContext, "There are not enough points to redeem", Toast.LENGTH_SHORT)
+            .show()
       }
    }
 
-   private fun show(tableName: String, thisContext: Context, thisActivity: Activity) {
-      var pointsToShowThatAreAdding = 0
-      var pointsToAdd : Int = 0
-      var doneWithShowingSpinner = false
+   fun show(tableName: String, thisContext: Context, thisActivity: Activity, numberOfPointsAllowed: Int) {
+      pointsToAdd = 0
+      doneWithShowingSpinner = false
       val d = Dialog(thisContext)
       d.setTitle("NumberPicker")
       d.setContentView(R.layout.dialog)
@@ -157,34 +190,40 @@ class Methods() {
       numberPicker.minValue = 1
       numberPicker.wrapSelectorWheel = false
 
-      b1.setOnClickListener{
-         var totalPointsAfterAdding = 0
+      b1.setOnClickListener {
+         totalPointsAfterAdding = 0
          pointsToAdd = numberPicker.value
          d.dismiss()
          doneWithShowingSpinner = true
          totalPointsAfterAdding = pointsToAdd + getPointsValueFromDb(tableName, thisContext)
-         if(totalPointsAfterAdding >= 50){
-            pointsToShowThatAreAdding = 50 - getPointsValueFromDb(tableName, thisContext)
-         }else{
+         if (totalPointsAfterAdding >= numberOfPointsAllowed) {
+            pointsToShowThatAreAdding = numberOfPointsAllowed - getPointsValueFromDb(tableName, thisContext)
+         } else {
             pointsToShowThatAreAdding = pointsToAdd
          }
 
          val builder = AlertDialog.Builder(thisContext)
          builder.setTitle("Adding ${pointsToShowThatAreAdding} points")
          builder.setPositiveButton("SCAN") { dialogInterface: DialogInterface, i: Int ->
-            Toast.makeText(thisContext, "$pointsToShowThatAreAdding points are being added", Toast.LENGTH_LONG).show()
+            Toast.makeText(
+               thisContext,
+               "$pointsToShowThatAreAdding points are being added",
+               Toast.LENGTH_LONG
+            ).show()
             scanCode(thisActivity)
          }
          builder.setNegativeButton("GO BACK") { dialogInterface: DialogInterface, i: Int ->
             Toast.makeText(thisActivity, "Scan cancelled", Toast.LENGTH_SHORT).show()
          }
 
-         if(totalPointsAfterAdding >= 50){
-            builder.setMessage("A Los Amigos employee must verify points before scanning.\n\nThe maximum total points allowed is 50\n\n" +
-                    "Any points above a total of 50 will not be added")
+         if (totalPointsAfterAdding >= numberOfPointsAllowed) {
+            builder.setMessage(
+               "A Los Amigos employee must verify points before scanning.\n\nThe maximum total points allowed is $numberOfPointsAllowed\n\n" +
+                       "Any points above a total of $numberOfPointsAllowed will not be added"
+            )
             totalPointsAfterAdding = 0
             builder.show()
-         }else{
+         } else {
             builder.setMessage("A Los Amigos employee must verify points before scanning.")
             totalPointsAfterAdding = 0
             builder.show()
@@ -198,7 +237,22 @@ class Methods() {
       d.show()
    }//26
 
+   fun qrScanSuccess(thisTable: String, thisContext: Context, applicationContext: Context, redeemPointsBtn: Button, numberOfPointsAllowed: Int,
+   pointsNumberTextView: TextView, progressBar: ProgressBar){
+      addPointsToDb(pointsToAdd, thisTable, thisContext, applicationContext)//24
+      showButtonIfUserHasFiftyPoints(thisTable, redeemPointsBtn, thisContext, numberOfPointsAllowed)
+
+      setProgressBarAndPointsNumber(getPointsValueFromDb(thisTable, thisContext),
+         progressBar, pointsNumberTextView, numberOfPointsAllowed)
+
+      Toast.makeText(thisContext, "$pointsToShowThatAreAdding Points added", Toast.LENGTH_LONG).show()
+      pointsToShowThatAreAdding = 0
+      pointsToAdd = 0
+
+      if(isThereMoreThanOneSetOfPoints(thisTable, thisContext)){
+         val databaseHandler = DatabaseHandler(thisContext)
+         databaseHandler.deleteFirstRow(thisTable)
+         databaseHandler.close()
+      }}
+
 }
-
-
-

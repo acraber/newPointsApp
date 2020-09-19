@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import android.widget.NumberPicker
+import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.google.zxing.integration.android.IntentIntegrator
@@ -16,11 +17,10 @@ import kotlinx.android.synthetic.main.activity_points_system.*
 
 class PointsSystem : AppCompatActivity() {
 
-
-    val numberOfPointsAllowed = 50
-    val thisTable = "SecondPointsTable"
-    val methodsHandler = Methods()
-    val qrCode = "1191512"
+    private val numberOfPointsAllowed = 50
+    private val thisTable = "SecondPointsTable"
+    private val methodsHandler = Methods()
+    private val qrCode = "1191512"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,7 +28,6 @@ class PointsSystem : AppCompatActivity() {
         scanBtn.setOnClickListener{
             methodsHandler.doneWithShowingSpinner = false
         }//27
-
 
         methodsHandler.showButtonIfUserHasFiftyPoints(thisTable, redeemPointsBtn, this, numberOfPointsAllowed)
 
@@ -50,21 +49,8 @@ class PointsSystem : AppCompatActivity() {
         if (result != null) {
             if (result.contents != null) {
                 if(result.contents == qrCode) {
-                    methodsHandler.addPointsToDb(methodsHandler.pointsToAdd, thisTable, this, application)//24
-                    methodsHandler.showButtonIfUserHasFiftyPoints(thisTable, redeemPointsBtn, this, numberOfPointsAllowed)
-
-                    methodsHandler.setProgressBarAndPointsNumber(methodsHandler.getPointsValueFromDb(thisTable, this),
-                        progressBar, pointsNumberTextView, numberOfPointsAllowed)
-
-                    Toast.makeText(this, "${methodsHandler.pointsToShowThatAreAdding} Points added", Toast.LENGTH_LONG).show()
-                    methodsHandler.pointsToShowThatAreAdding = 0
-                    methodsHandler.pointsToAdd = 0
-
-                    if(methodsHandler.isThereMoreThanOneSetOfPoints(thisTable, this)){
-                        val databaseHandler = DatabaseHandler(this)
-                        databaseHandler.deleteFirstRow(thisTable)
-                        databaseHandler.close()
-                    }
+                   methodsHandler.qrScanSuccess(thisTable,this, application, redeemPointsBtn, numberOfPointsAllowed,
+                   pointsNumberTextView,progressBar)
                 }else {
                     Toast.makeText(this, "Barcode Not Recognized", Toast.LENGTH_LONG).show()
                 }
@@ -75,8 +61,4 @@ class PointsSystem : AppCompatActivity() {
             super.onActivityResult(requestCode, resultCode, data)
         }
     } //7
-
-
-
-
 }
