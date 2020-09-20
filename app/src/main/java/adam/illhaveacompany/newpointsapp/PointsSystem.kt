@@ -9,10 +9,10 @@ import kotlinx.android.synthetic.main.activity_points_system.*
 
 class PointsSystem : AppCompatActivity() {
 
-    val numberOfPointsAllowed = 20
-    val thisTable = "PointsTable"
+    val numberOfPointsAllowed = 5
+    val thisTable = "SecondPointsTable"
     private val methodsHandler = Methods()
-    val qrCode = "AAA"
+    val qrCode = "BBB"
     val pointsToAdd = 0
     val toastMessage = "Please Work"
 
@@ -32,7 +32,6 @@ class PointsSystem : AppCompatActivity() {
 
 
         methodsHandler.showButtonIfUserHasFiftyPoints(
-            thisTable,
             redeemPointsBtn,
             this,
             numberOfPointsAllowed
@@ -40,14 +39,13 @@ class PointsSystem : AppCompatActivity() {
 
         methodsHandler.setProgressBarAndPointsNumber(
             methodsHandler.getPointsValueFromDb(
-                thisTable,
                 this
             ), progressBar, pointsNumberTextView, numberOfPointsAllowed
         )
 
 
         scanBtn.setOnClickListener{
-            methodsHandler.show(thisTable, this, this, numberOfPointsAllowed)
+            methodsHandler.show(this, this, numberOfPointsAllowed)
         }
 
         redeemPointsBtn.setOnClickListener {
@@ -65,7 +63,7 @@ class PointsSystem : AppCompatActivity() {
             if (result.contents != null) {
                 if(result.contents == qrCode) {
                    methodsHandler.qrScanSuccess(
-                       thisTable, this, application, redeemPointsBtn, numberOfPointsAllowed,
+                       this, application, redeemPointsBtn, numberOfPointsAllowed,
                        pointsNumberTextView, progressBar
                    )
                 }else {
