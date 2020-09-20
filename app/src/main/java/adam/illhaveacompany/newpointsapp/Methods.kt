@@ -15,29 +15,33 @@ class Methods(){
    var pointsToShowThatAreAdding = 0
    var pointsToAdd = 0
    var totalPointsAfterAdding = 0
-   var toastMessage = "notright"
    var tableName = ""
    var numberOfPointsAllowed = 0
+   lateinit var context1: Context
+   lateinit var activity1: Activity
 
-   fun setVariablesInMethods(numberOfPointsAllowed: Int, thisTable: String, qrCode: String, toastMessage: String){
+
+   fun setVariablesInMethods(numberOfPointsAllowed: Int, thisTable: String, thisContext: Context, thisActivity: Activity){
       this.numberOfPointsAllowed = numberOfPointsAllowed
       this.tableName = thisTable
+      this.context1 = thisContext
+      this.activity1 = thisActivity
    }
 
-   fun toast(thisContext: Context){
-      Toast.makeText(thisContext, tableName, Toast.LENGTH_LONG).show()
+   fun toast(){
+      Toast.makeText(context1, tableName, Toast.LENGTH_LONG).show()
    }
 
-   private fun isThereMoreThanOneSetOfPoints(context: Context): Boolean {
+   private fun isThereMoreThanOneSetOfPoints(): Boolean {
       //returns whether there's two sets of points - found from DatabaseHandler's function
-      val databaseHandler = DatabaseHandler(context)
+      val databaseHandler = DatabaseHandler(context1)
       val twoSetsOfPoints = databaseHandler.areThereMoreThanOneSetOfPoints(tableName)
       databaseHandler.close()
       return twoSetsOfPoints
    }//17 - checks if there's more than one set of points in the database
 
-   private fun scanCode(activity: Activity) {
-      val integrator = IntentIntegrator(activity)
+   private fun scanCode() {
+      val integrator = IntentIntegrator(activity1)
       integrator.captureActivity = CaptureAct::class.java
       integrator.setOrientationLocked(false)
       integrator.setDesiredBarcodeFormats(IntentIntegrator.QR_CODE_TYPES)
@@ -45,17 +49,17 @@ class Methods(){
       integrator.initiateScan()
    } //5
 
-   private fun areTherePointsInTheDatabase(context: Context): Boolean {
-      val dbHandler = DatabaseHandler(context)
+   private fun areTherePointsInTheDatabase(): Boolean {
+      val dbHandler = DatabaseHandler(context1)
       val areTherePoints = dbHandler.areTherePoints(tableName)
       dbHandler.close()
       return areTherePoints
    }//19
 
-   fun getPointsValueFromDb(context: Context): Int {
+   fun getPointsValueFromDb(): Int {
       var lastPointsValue = 0
-      if (areTherePointsInTheDatabase(context)) {
-         val databaseHandler = DatabaseHandler(context)
+      if (areTherePointsInTheDatabase()) {
+         val databaseHandler = DatabaseHandler(context1)
          val pointsValueList = databaseHandler.getPointsValues(tableName)
          val lastPointsValueRow = pointsValueList[pointsValueList.size - 1]
          lastPointsValue = lastPointsValueRow.numberOfPoints
@@ -67,11 +71,10 @@ class Methods(){
 
    private fun addPointsToDb(
       points: Int,
-      thisContext: Context,
       applicationContext: Context
    ) {
-      if (areTherePointsInTheDatabase(thisContext)) {
-         val databaseHandler = DatabaseHandler(thisContext)
+      if (areTherePointsInTheDatabase()) {
+         val databaseHandler = DatabaseHandler(context1)
          val status = databaseHandler.addSecondaryPoints(points, tableName)
          if (status > -1) {
          } else {
@@ -79,7 +82,7 @@ class Methods(){
          }
          databaseHandler.close()
       } else {
-         val databaseHandler = DatabaseHandler(thisContext)
+         val databaseHandler = DatabaseHandler(context1)
          val status = databaseHandler.addFirstPoints(Points(0, points), tableName)
 
          if (status > -1) {
@@ -94,10 +97,9 @@ class Methods(){
 
 
    fun showButtonIfUserHasFiftyPoints(
-      redeemPointsbtnButton: Button,
-      thisContext: Context
+      redeemPointsbtnButton: Button
    ) {
-      val numberOfPoints = getPointsValueFromDb(thisContext)
+      val numberOfPoints = getPointsValueFromDb()
       if (numberOfPoints >= numberOfPointsAllowed) {
          redeemPointsbtnButton.visibility = View.VISIBLE
       } else {
@@ -126,29 +128,28 @@ class Methods(){
 
    private fun redeemPointsBuilder(
       progressBar: ProgressBar, pointsNumberTextView: TextView,
-      redeemPointsBtn: Button, thisContext: Context,
+      redeemPointsBtn: Button
    ) {
-      val builder2 = AlertDialog.Builder(thisContext)
+      val builder2 = AlertDialog.Builder(context1)
       builder2.setTitle("Redeeming Points")
       builder2.setMessage(
          "Are you sure you would like to redeem your points?\n\nThis can only be done once\n\nIf you press yes " +
                  "away from a Los Amigos employee you will lose your points with no refund."
       )
       builder2.setPositiveButton("YES") { dialogInterface: DialogInterface, i: Int ->
-         val db = DatabaseHandler(thisContext)
+         val db = DatabaseHandler(context1)
          db.addFirstPoints(Points(0, 0), tableName)
          db.close()
          setProgressBarAndPointsNumber(
-            getPointsValueFromDb(thisContext),
+            getPointsValueFromDb(),
             progressBar,
             pointsNumberTextView
          )
          showButtonIfUserHasFiftyPoints(
             redeemPointsBtn,
-            thisContext,
          )
-         Toast.makeText(thisContext, "Points removed from account", Toast.LENGTH_SHORT).show()
-         val builder4 = AlertDialog.Builder(thisContext)
+         Toast.makeText(context1, "Points removed from account", Toast.LENGTH_SHORT).show()
+         val builder4 = AlertDialog.Builder(context1)
          builder4.setTitle("SHOW TO EMPLOYEE")
          builder4.setCancelable(false)
          builder4.setMessage("The user has chosen to redeem their points\n\nShow this message to Los Amigos employee or points may be voided")
@@ -158,7 +159,7 @@ class Methods(){
          builder4.show()
       }
       builder2.setNegativeButton("NO") { dialogInterface: DialogInterface, i: Int ->
-         val builder3 = AlertDialog.Builder(thisContext)
+         val builder3 = AlertDialog.Builder(context1)
          builder3.setTitle("NOT REDEEMING POINTS")
          builder3.setMessage("User cancelled points redemption")
          builder3.setPositiveButton("Okay") { dialogInterface: DialogInterface, i: Int ->
@@ -170,28 +171,24 @@ class Methods(){
 
    fun redeemPoints(
       progressBar: ProgressBar, pointsNumberTextView: TextView,
-      redeemPointsBtn: Button, thisContext: Context
+      redeemPointsBtn: Button
    ) {
-      if (getPointsValueFromDb(thisContext) >= numberOfPointsAllowed) {
+      if (getPointsValueFromDb() >= numberOfPointsAllowed) {
          redeemPointsBuilder(
             progressBar,
             pointsNumberTextView,
             redeemPointsBtn,
-            thisContext,
          )
       } else {
-         Toast.makeText(thisContext, "There are not enough points to redeem", Toast.LENGTH_SHORT)
+         Toast.makeText(context1, "There are not enough points to redeem", Toast.LENGTH_SHORT)
             .show()
       }
    }
 
-   fun show(
-      thisContext: Context,
-      thisActivity: Activity,
-   ) {
+   fun show() {
       pointsToAdd = 0
       doneWithShowingSpinner = false
-      val d = Dialog(thisContext)
+      val d = Dialog(context1)
       d.setTitle("NumberPicker")
       d.setContentView(R.layout.dialog)
       val b1: Button = d.findViewById(R.id.setButton) as Button
@@ -206,28 +203,26 @@ class Methods(){
          pointsToAdd = numberPicker.value
          d.dismiss()
          doneWithShowingSpinner = true
-         totalPointsAfterAdding = pointsToAdd + getPointsValueFromDb(thisContext)
+         totalPointsAfterAdding = pointsToAdd + getPointsValueFromDb()
          if (totalPointsAfterAdding >= numberOfPointsAllowed) {
-            pointsToShowThatAreAdding = numberOfPointsAllowed - getPointsValueFromDb(
-               thisContext
-            )
+            pointsToShowThatAreAdding = numberOfPointsAllowed - getPointsValueFromDb()
             pointsToAdd = pointsToShowThatAreAdding
          } else {
             pointsToShowThatAreAdding = pointsToAdd
          }
 
-         val builder = AlertDialog.Builder(thisContext)
+         val builder = AlertDialog.Builder(context1)
          builder.setTitle("Adding ${pointsToShowThatAreAdding} points")
          builder.setPositiveButton("SCAN") { dialogInterface: DialogInterface, i: Int ->
             Toast.makeText(
-               thisContext,
+               context1,
                "$pointsToShowThatAreAdding points are being added",
                Toast.LENGTH_LONG
             ).show()
-            scanCode(thisActivity)
+            scanCode()
          }
          builder.setNegativeButton("GO BACK") { dialogInterface: DialogInterface, i: Int ->
-            Toast.makeText(thisActivity, "Scan cancelled", Toast.LENGTH_SHORT).show()
+            Toast.makeText(activity1, "Scan cancelled", Toast.LENGTH_SHORT).show()
          }
 
          if (totalPointsAfterAdding >= numberOfPointsAllowed) {
@@ -252,26 +247,25 @@ class Methods(){
    }//26
 
    fun qrScanSuccess(
-      thisContext: Context,
       applicationContext: Context,
       redeemPointsBtn: Button,
       pointsNumberTextView: TextView,
       progressBar: ProgressBar
    ){
-      addPointsToDb(pointsToAdd, thisContext, applicationContext)//24
-      showButtonIfUserHasFiftyPoints(redeemPointsBtn, thisContext)
+      addPointsToDb(pointsToAdd, applicationContext)//24
+      showButtonIfUserHasFiftyPoints(redeemPointsBtn)
 
       setProgressBarAndPointsNumber(
-         getPointsValueFromDb(thisContext),
+         getPointsValueFromDb(),
          progressBar, pointsNumberTextView
       )
 
-      Toast.makeText(thisContext, "$pointsToShowThatAreAdding Points added", Toast.LENGTH_LONG).show()
+      Toast.makeText(context1, "$pointsToShowThatAreAdding Points added", Toast.LENGTH_LONG).show()
       pointsToShowThatAreAdding = 0
       pointsToAdd = 0
 
-      if(isThereMoreThanOneSetOfPoints(thisContext)){
-         val databaseHandler = DatabaseHandler(thisContext)
+      if(isThereMoreThanOneSetOfPoints()){
+         val databaseHandler = DatabaseHandler(context1)
          databaseHandler.deleteFirstRow(tableName)
          databaseHandler.close()
       }}
