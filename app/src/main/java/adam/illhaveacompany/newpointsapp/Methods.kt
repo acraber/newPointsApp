@@ -95,7 +95,7 @@ class Methods(){
 
    fun showButtonIfUserHasFiftyPoints(
       redeemPointsbtnButton: Button,
-      thisContext: Context, numberOfPointsAllowed: Int
+      thisContext: Context
    ) {
       val numberOfPoints = getPointsValueFromDb(thisContext)
       if (numberOfPoints >= numberOfPointsAllowed) {
@@ -111,7 +111,6 @@ class Methods(){
       numberOfPoints: Int,
       progressBar: ProgressBar,
       pointsNumberTextView: TextView,
-      numberOfPointsAllowed: Int
    ) {
       progressBar.max = numberOfPointsAllowed*10
 
@@ -127,7 +126,7 @@ class Methods(){
 
    private fun redeemPointsBuilder(
       progressBar: ProgressBar, pointsNumberTextView: TextView,
-      redeemPointsBtn: Button, thisContext: Context, numberOfPointsAllowed: Int
+      redeemPointsBtn: Button, thisContext: Context,
    ) {
       val builder2 = AlertDialog.Builder(thisContext)
       builder2.setTitle("Redeeming Points")
@@ -142,12 +141,11 @@ class Methods(){
          setProgressBarAndPointsNumber(
             getPointsValueFromDb(thisContext),
             progressBar,
-            pointsNumberTextView, numberOfPointsAllowed
+            pointsNumberTextView
          )
          showButtonIfUserHasFiftyPoints(
             redeemPointsBtn,
             thisContext,
-            numberOfPointsAllowed
          )
          Toast.makeText(thisContext, "Points removed from account", Toast.LENGTH_SHORT).show()
          val builder4 = AlertDialog.Builder(thisContext)
@@ -171,8 +169,8 @@ class Methods(){
    }
 
    fun redeemPoints(
-      thisTable: String, progressBar: ProgressBar, pointsNumberTextView: TextView,
-      redeemPointsBtn: Button, thisContext: Context, numberOfPointsAllowed: Int
+      progressBar: ProgressBar, pointsNumberTextView: TextView,
+      redeemPointsBtn: Button, thisContext: Context
    ) {
       if (getPointsValueFromDb(thisContext) >= numberOfPointsAllowed) {
          redeemPointsBuilder(
@@ -180,7 +178,6 @@ class Methods(){
             pointsNumberTextView,
             redeemPointsBtn,
             thisContext,
-            numberOfPointsAllowed
          )
       } else {
          Toast.makeText(thisContext, "There are not enough points to redeem", Toast.LENGTH_SHORT)
@@ -191,7 +188,6 @@ class Methods(){
    fun show(
       thisContext: Context,
       thisActivity: Activity,
-      numberOfPointsAllowed: Int
    ) {
       pointsToAdd = 0
       doneWithShowingSpinner = false
@@ -259,16 +255,15 @@ class Methods(){
       thisContext: Context,
       applicationContext: Context,
       redeemPointsBtn: Button,
-      numberOfPointsAllowed: Int,
       pointsNumberTextView: TextView,
       progressBar: ProgressBar
    ){
       addPointsToDb(pointsToAdd, thisContext, applicationContext)//24
-      showButtonIfUserHasFiftyPoints(redeemPointsBtn, thisContext, numberOfPointsAllowed)
+      showButtonIfUserHasFiftyPoints(redeemPointsBtn, thisContext)
 
       setProgressBarAndPointsNumber(
          getPointsValueFromDb(thisContext),
-         progressBar, pointsNumberTextView, numberOfPointsAllowed
+         progressBar, pointsNumberTextView
       )
 
       Toast.makeText(thisContext, "$pointsToShowThatAreAdding Points added", Toast.LENGTH_LONG).show()
