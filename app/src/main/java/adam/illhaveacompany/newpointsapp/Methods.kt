@@ -68,24 +68,11 @@ class Methods(){
    private fun addPointsToDb(
       points: Int,
    ) {
-      if (areTherePointsInTheDatabase()) {
          val databaseHandler = DatabaseHandler(context)
-         val status = databaseHandler.addSecondaryPoints(points, tableName)
+         val status = databaseHandler.addFirstPoints(Points(0,points), tableName)
          if (status > -1) {
          } else {
             Toast.makeText(context, "Record save failed", Toast.LENGTH_LONG).show()
-         }
-         databaseHandler.close()
-      } else {
-         val databaseHandler = DatabaseHandler(context)
-         val status = databaseHandler.addFirstPoints(Points(0, points), tableName)
-
-         if (status > -1) {
-            Toast.makeText(context, "Points Successfully Added", Toast.LENGTH_LONG)
-               .show()
-         } else {
-            Toast.makeText(context, "Record save failed", Toast.LENGTH_LONG).show()
-         }
          databaseHandler.close()
       }
    }//23
@@ -100,8 +87,6 @@ class Methods(){
       } else {
          redeeMPointsBtn.visibility = View.GONE
       }
-
-
    }
 
    fun setProgressBarAndPointsNumber(
