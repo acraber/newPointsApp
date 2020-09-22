@@ -19,13 +19,15 @@ class Methods(){
    var numberOfPointsAllowed = 0
    lateinit var context: Context
    lateinit var activity: Activity
+   var usingNumberPicker: Boolean = false
 
 
-   fun setVariablesInMethods(numberOfPointsAllowed: Int, thisTable: String, thisContext: Context, thisActivity: Activity){
+   fun setVariablesInMethods(numberOfPointsAllowed: Int, thisTable: String, thisContext: Context, thisActivity: Activity,usingNumberPicker: Boolean){
       this.numberOfPointsAllowed = numberOfPointsAllowed
       this.tableName = thisTable
       this.context = thisContext
       this.activity = thisActivity
+      this.usingNumberPicker = usingNumberPicker
    }
 
    private fun isThereMoreThanOneSetOfPoints(): Boolean {
@@ -46,6 +48,12 @@ class Methods(){
    } //5
 
    private fun areTherePointsInTheDatabase(): Boolean {
+      /*
+      Returns whether or not there are points in the database.
+           Used when trying to display the number of points to the user. If the table is
+           empty and we try to get the contents of that table, the app will crash.
+           Also helps the system decide whether to add points to the database or update them.
+       */
       val dbHandler = DatabaseHandler(context)
       val areTherePoints = dbHandler.areTherePoints(tableName)
       dbHandler.close()
@@ -58,7 +66,7 @@ class Methods(){
          val databaseHandler = DatabaseHandler(context)
          val pointsValueList = databaseHandler.getPointsValues(tableName)
          val lastPointsValueRow = pointsValueList[pointsValueList.size - 1]
-         lastPointsValue = lastPointsValueRow.numberOfPoints
+         lastPointsValue = lastPointsValueRow
       } else {
          lastPointsValue = 0
       }
@@ -66,13 +74,26 @@ class Methods(){
    }//18 -- checks if there's points in the database. If there are, it returns the points. If not, it returns 0
 
    private fun addPointsToDb(
-      points: Int,
+      pointsAdding: Int,
    ) {
+      if (areTherePointsInTheDatabase()) {
          val databaseHandler = DatabaseHandler(context)
-         val status = databaseHandler.addFirstPoints(Points(0,points), tableName)
+         val status = databaseHandler.updatePoints(pointsAdding, tableName)
          if (status > -1) {
          } else {
             Toast.makeText(context, "Record save failed", Toast.LENGTH_LONG).show()
+         }
+         databaseHandler.close()
+      } else {
+         val databaseHandler = DatabaseHandler(context)
+         val status = databaseHandler.addPoints(pointsAdding, tableName)
+
+         if (status > -1) {
+            Toast.makeText(context, "Points Successfully Added", Toast.LENGTH_LONG)
+               .show()
+         } else {
+            Toast.makeText(context, "Record save failed", Toast.LENGTH_LONG).show()
+         }
          databaseHandler.close()
       }
    }//23
@@ -118,7 +139,7 @@ class Methods(){
       )
       builder2.setPositiveButton("YES") { dialogInterface: DialogInterface, i: Int ->
          val db = DatabaseHandler(context)
-         db.addFirstPoints(Points(0, 0), tableName)
+         db.addPoints( 0, tableName)
          db.close()
          setProgressBarAndPointsNumber(
             getPointsValueFromDb(),
@@ -167,6 +188,7 @@ class Methods(){
 
    fun show() {
       pointsToAdd = 0
+
       doneWithShowingSpinner = false
       val d = Dialog(context)
       d.setTitle("NumberPicker")
