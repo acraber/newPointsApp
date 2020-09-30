@@ -15,7 +15,7 @@
         android:gravity="center"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="DigiCards"
+        android:text="Tap to go to store's deal"
         android:textSize="50dp"
         android:textColor="@android:color/secondary_text_dark"/>
 
@@ -24,12 +24,36 @@
         android:layout_height="100dp" />
 
     <TextView
-        android:paddingTop="25dp"
+        android:id="@+id/losAmigosButton"
+        android:padding="25dp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:text="Los Amigos"
+        android:textSize="35dp"
+        android:textColor="@android:color/secondary_text_dark"/>
+
+
+    <TextView
+        android:id="@+id/bobsBurgersButton"
+        android:padding="25dp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:text="Bob's Burgers"
+        android:textSize="35dp"
+        android:textColor="@android:color/secondary_text_dark"/>
+
+    <TextView
+        android:id="@+id/wetzelsPretzelsButton"
+        android:padding="25dp"
         android:textStyle="bold"
         android:gravity="center"
         android:layout_width="400dp"
         android:layout_height="wrap_content"
-        android:text="The only punch card you won't lose"
+        android:text="Wetzels Pretzels"
         android:textSize="35dp"
         android:textColor="@android:color/secondary_text_dark"/>
 
@@ -37,33 +61,6 @@
         android:layout_width="match_parent"
         android:layout_height="100dp" />
 
-    <Button
-        android:id="@+id/getStartedButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="View Stores In Your Area"
-        android:textSize="30dp"
-        android:textColor="@android:color/white"
-        android:background="@drawable/rounded_button"
-        />
-    <TextView
-        android:paddingTop="35dp"
-        android:layout_width="300dp"
-        android:gravity="center_horizontal"
-        android:layout_height="wrap_content"
-        android:textSize="20dp"
-        android:textColor="#FFFFFF"
-        android:text="By using this application you agree to the terms and conditions"
-        android:paddingBottom="15dp"/>
-
-    <Button
-        android:id="@+id/termsAndConditionsButton"
-        android:layout_width="200dp"
-        android:layout_height="wrap_content"
-        android:background="#000000"
-        android:text="TAP TO VIEW TERMS AND CONDITIONS"
-        android:textColor="@android:color/white"
-        android:textSize="15dp" />
 
 
 

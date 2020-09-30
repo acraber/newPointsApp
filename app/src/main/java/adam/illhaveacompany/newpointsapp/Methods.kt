@@ -10,7 +10,7 @@ import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import com.google.zxing.integration.android.IntentIntegrator
 
-class Methods(){
+class Methods {
    var doneWithShowingSpinner = false
    var pointsToShowThatAreAdding = 0
    var pointsToAdd = 0
@@ -96,6 +96,7 @@ class Methods(){
          }
          databaseHandler.close()
       }
+      //UPDATE FIREBASE TABLE HERE
    }//23
 
 
@@ -125,6 +126,132 @@ class Methods(){
          ObjectAnimator.ofInt(progressBar, "progress", numberOfPoints * 10).setDuration(2000)
             .start()
       }
+   }
+
+
+   fun redeemPoints(
+      progressBar: ProgressBar, pointsNumberTextView: TextView,
+      redeemPointsBtn: Button
+   ) {
+      if (getPointsValueFromDb() >= numberOfPointsAllowed) {
+         redeemPointsBuilder(
+            progressBar,
+            pointsNumberTextView,
+            redeemPointsBtn,
+         )
+      } else {
+         Toast.makeText(context, "There are not enough points to redeem", Toast.LENGTH_SHORT)
+            .show()
+      }
+   }
+
+   fun addOnePoint(){
+      totalPointsAfterAdding = 0
+      pointsToAdd = 1
+      doneWithShowingSpinner = true
+      totalPointsAfterAdding = pointsToAdd + getPointsValueFromDb()
+      if (totalPointsAfterAdding >= numberOfPointsAllowed) {
+         pointsToShowThatAreAdding = numberOfPointsAllowed - getPointsValueFromDb()
+         pointsToAdd = pointsToShowThatAreAdding
+      } else {
+         pointsToShowThatAreAdding = pointsToAdd
+      }
+     setAlertDialogs()
+   }
+
+   fun startPointsAddingProcess() {
+      if(usingNumberPicker) {
+         startNumberPicker()
+      }else(addOnePoint())
+   }//26
+
+   fun qrScanSuccess(
+      redeemPointsBtn: Button,
+      pointsNumberTextView: TextView,
+      progressBar: ProgressBar
+   ){
+      addPointsToDb(pointsToAdd)//24
+      showButtonIfUserHasFiftyPoints(redeemPointsBtn)
+
+      setProgressBarAndPointsNumber(
+         getPointsValueFromDb(),
+         progressBar, pointsNumberTextView
+      )
+
+      Toast.makeText(context, "$pointsToShowThatAreAdding Points added", Toast.LENGTH_LONG).show()
+      pointsToShowThatAreAdding = 0
+      pointsToAdd = 0
+
+      if(isThereMoreThanOneSetOfPoints()){
+         val databaseHandler = DatabaseHandler(context)
+         databaseHandler.deleteFirstRow(tableName)
+         databaseHandler.close()
+      }}
+
+   fun setAlertDialogs(){
+
+      val builder = AlertDialog.Builder(context)
+      builder.setTitle("Adding ${pointsToShowThatAreAdding} points")
+      builder.setPositiveButton("SCAN") { dialogInterface: DialogInterface, i: Int ->
+         Toast.makeText(
+            context,
+            "$pointsToShowThatAreAdding points are being added",
+            Toast.LENGTH_LONG
+         ).show()
+         scanCode()
+      }
+      builder.setNegativeButton("GO BACK") { dialogInterface: DialogInterface, i: Int ->
+         Toast.makeText(activity, "Scan cancelled", Toast.LENGTH_SHORT).show()
+      }
+
+      if (totalPointsAfterAdding >= numberOfPointsAllowed) {
+         builder.setMessage(
+            "A Los Amigos employee must verify points before scanning.\n\nThe maximum total points allowed is $numberOfPointsAllowed\n\n" +
+                    "Any points above a total of $numberOfPointsAllowed will not be added"
+         )
+         totalPointsAfterAdding = 0
+         builder.show()
+      } else {
+         builder.setMessage("A Los Amigos employee must verify points before scanning.")
+         totalPointsAfterAdding = 0
+         builder.show()
+      }
+   }
+
+   fun startNumberPicker(){
+      //shows the number picker
+      pointsToAdd = 0
+
+      doneWithShowingSpinner = false
+      val d = Dialog(context)
+      d.setTitle("NumberPicker")
+      d.setContentView(R.layout.dialog)
+      val b1: Button = d.findViewById(R.id.setButton) as Button
+      val b2: Button = d.findViewById(R.id.cancelButton) as Button
+      val numberPicker = d.findViewById(R.id.numberPicker1) as NumberPicker
+      numberPicker.maxValue = 25
+      numberPicker.minValue = 1
+      numberPicker.wrapSelectorWheel = false
+
+      b1.setOnClickListener {
+         totalPointsAfterAdding = 0
+         pointsToAdd = numberPicker.value
+         d.dismiss()
+         doneWithShowingSpinner = true
+         totalPointsAfterAdding = pointsToAdd + getPointsValueFromDb()
+         if (totalPointsAfterAdding >= numberOfPointsAllowed) {
+            pointsToShowThatAreAdding = numberOfPointsAllowed - getPointsValueFromDb()
+            pointsToAdd = pointsToShowThatAreAdding
+         } else {
+            pointsToShowThatAreAdding = pointsToAdd
+         }
+         setAlertDialogs()
+      }//31 and also //6 earlier
+
+      b2.setOnClickListener {
+         d.dismiss()
+      }
+      d.show()
    }
 
    private fun redeemPointsBuilder(
@@ -170,106 +297,6 @@ class Methods(){
       builder2.show()
    }
 
-   fun redeemPoints(
-      progressBar: ProgressBar, pointsNumberTextView: TextView,
-      redeemPointsBtn: Button
-   ) {
-      if (getPointsValueFromDb() >= numberOfPointsAllowed) {
-         redeemPointsBuilder(
-            progressBar,
-            pointsNumberTextView,
-            redeemPointsBtn,
-         )
-      } else {
-         Toast.makeText(context, "There are not enough points to redeem", Toast.LENGTH_SHORT)
-            .show()
-      }
-   }
-
-   fun show() {
-      pointsToAdd = 0
-
-      doneWithShowingSpinner = false
-      val d = Dialog(context)
-      d.setTitle("NumberPicker")
-      d.setContentView(R.layout.dialog)
-      val b1: Button = d.findViewById(R.id.setButton) as Button
-      val b2: Button = d.findViewById(R.id.cancelButton) as Button
-      val numberPicker = d.findViewById(R.id.numberPicker1) as NumberPicker
-      numberPicker.maxValue = 25
-      numberPicker.minValue = 1
-      numberPicker.wrapSelectorWheel = false
-
-      b1.setOnClickListener {
-         totalPointsAfterAdding = 0
-         pointsToAdd = numberPicker.value
-         d.dismiss()
-         doneWithShowingSpinner = true
-         totalPointsAfterAdding = pointsToAdd + getPointsValueFromDb()
-         if (totalPointsAfterAdding >= numberOfPointsAllowed) {
-            pointsToShowThatAreAdding = numberOfPointsAllowed - getPointsValueFromDb()
-            pointsToAdd = pointsToShowThatAreAdding
-         } else {
-            pointsToShowThatAreAdding = pointsToAdd
-         }
-
-         val builder = AlertDialog.Builder(context)
-         builder.setTitle("Adding ${pointsToShowThatAreAdding} points")
-         builder.setPositiveButton("SCAN") { dialogInterface: DialogInterface, i: Int ->
-            Toast.makeText(
-               context,
-               "$pointsToShowThatAreAdding points are being added",
-               Toast.LENGTH_LONG
-            ).show()
-            scanCode()
-         }
-         builder.setNegativeButton("GO BACK") { dialogInterface: DialogInterface, i: Int ->
-            Toast.makeText(activity, "Scan cancelled", Toast.LENGTH_SHORT).show()
-         }
-
-         if (totalPointsAfterAdding >= numberOfPointsAllowed) {
-            builder.setMessage(
-               "A Los Amigos employee must verify points before scanning.\n\nThe maximum total points allowed is $numberOfPointsAllowed\n\n" +
-                       "Any points above a total of $numberOfPointsAllowed will not be added"
-            )
-            totalPointsAfterAdding = 0
-            builder.show()
-         } else {
-            builder.setMessage("A Los Amigos employee must verify points before scanning.")
-            totalPointsAfterAdding = 0
-            builder.show()
-         }
-
-      }//31 and also //6 earlier
-
-      b2.setOnClickListener {
-         d.dismiss()
-      }
-      d.show()
-   }//26
-
-   fun qrScanSuccess(
-      redeemPointsBtn: Button,
-      pointsNumberTextView: TextView,
-      progressBar: ProgressBar
-   ){
-      addPointsToDb(pointsToAdd)//24
-      showButtonIfUserHasFiftyPoints(redeemPointsBtn)
-
-      setProgressBarAndPointsNumber(
-         getPointsValueFromDb(),
-         progressBar, pointsNumberTextView
-      )
-
-      Toast.makeText(context, "$pointsToShowThatAreAdding Points added", Toast.LENGTH_LONG).show()
-      pointsToShowThatAreAdding = 0
-      pointsToAdd = 0
-
-      if(isThereMoreThanOneSetOfPoints()){
-         val databaseHandler = DatabaseHandler(context)
-         databaseHandler.deleteFirstRow(tableName)
-         databaseHandler.close()
-      }}
 
 
 

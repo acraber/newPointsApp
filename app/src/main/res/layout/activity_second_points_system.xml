@@ -16,10 +16,10 @@
         android:gravity="center"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Earn 50 points and get $5 in store credit"
+        android:text="Buy 5 burgers get one free!"
         android:textSize="40dp"
         android:textColor="#FFFFFF"
-        android:paddingBottom="25dp"/>
+        android:paddingBottom="150dp"/>
 
 
     <LinearLayout
@@ -65,3 +65,4 @@
         android:background="@drawable/rounded_button"/>
 
 </LinearLayout>
+

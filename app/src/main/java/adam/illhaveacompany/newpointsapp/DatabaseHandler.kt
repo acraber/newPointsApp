@@ -1,7 +1,5 @@
 package adam.illhaveacompany.newpointsapp
 
-import adam.illhaveacompany.newpointsapp.Points
-import android.app.PendingIntent.getActivity
 import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
@@ -9,8 +7,6 @@ import android.database.DatabaseUtils
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteException
 import android.database.sqlite.SQLiteOpenHelper
-import android.graphics.Picture
-import android.widget.Toast
 
 class DatabaseHandler (context: Context) :
     SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION){
@@ -21,6 +17,8 @@ class DatabaseHandler (context: Context) :
 
         private const val TABLE_POINTS = "PointsTable"
         private const val TABLE_POINTS2 = "SecondPointsTable"
+        private const val TABLE_POINTS3 = "WetzelsPretzelsPointsTable"
+        //ON ADDING NEW ACTIVITIES MUST ADD
 
         private const val KEY_ID = "_id"
         private const val KEY_NUMBER_OF_POINTS = "numberOfPoints"
@@ -31,17 +29,24 @@ class DatabaseHandler (context: Context) :
                 + KEY_ID + " INTEGER PRIMARY KEY," + KEY_NUMBER_OF_POINTS + " TEXT" + ")")
         val CREATE_SECOND_LIBRARY_TABLE = ("CREATE TABLE " + TABLE_POINTS2 + "("
                 + KEY_ID + " INTEGER PRIMARY KEY," + KEY_NUMBER_OF_POINTS + " TEXT" + ")")
+        val CREATE_THIRD_LIBRARY_TABLE = ("CREATE TABLE " + TABLE_POINTS3 + "("
+                + KEY_ID + " INTEGER PRIMARY KEY," + KEY_NUMBER_OF_POINTS + " TEXT" + ")")
+        //ON ADDING NEW ACTIVITIES MUST ADD
         db?.execSQL(CREATE_LIBRARY_TABLE)
         db?.execSQL(CREATE_SECOND_LIBRARY_TABLE)
+        db?.execSQL(CREATE_THIRD_LIBRARY_TABLE)
     }//10
 
     override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
         db!!.execSQL("DROP TABLE IF EXISTS $TABLE_POINTS")
         db!!.execSQL("DROP TABLE IF EXISTS $TABLE_POINTS2")
+        db!!.execSQL("DROP TABLE IF EXISTS $TABLE_POINTS3")
+        //ON ADDING NEW ACTIVITIES MUST ADD
         onCreate(db)
     }//11
 
-    fun addFirstPoints(points: Points, tableName: String) : Long {
+
+    fun addPoints(points: Int, tableName: String) : Long {
         if(areTherePoints(tableName)){
             deleteFirstRow(tableName)
         }
@@ -50,7 +55,7 @@ class DatabaseHandler (context: Context) :
 
         val contentValues = ContentValues()
 
-        contentValues.put(KEY_NUMBER_OF_POINTS, points.numberOfPoints)
+        contentValues.put(KEY_NUMBER_OF_POINTS, points)
 
         val success = db.insert(tableName, null, contentValues)
         db.close()
@@ -89,8 +94,9 @@ class DatabaseHandler (context: Context) :
         db.close()
     }//16
 
-    fun getPointsValues(tableName: String) : ArrayList<Points> {
-        val pointsList: ArrayList<Points> = ArrayList<Points>()
+    fun getPointsValues(tableName: String) : ArrayList<Int> {
+
+        val pointsList: ArrayList<Int> = ArrayList()
         val selectQuery = "SELECT * FROM $tableName"
 
         val db = this.readableDatabase
@@ -102,35 +108,35 @@ class DatabaseHandler (context: Context) :
             db.execSQL(selectQuery)
         }//5
 
-        var id : Int
         var numberOfPoints: Int
 
         if (cursor != null) {
             if(cursor.moveToFirst()) {
                 do{
-                    id = cursor.getInt(cursor.getColumnIndex(KEY_ID))
                     numberOfPoints = cursor.getInt(cursor.getColumnIndex(KEY_NUMBER_OF_POINTS))
 
-                    val pointsRow = Points(id, numberOfPoints)
+                    val pointsRow = numberOfPoints
 
                     pointsList.add(pointsRow)
                 } while(cursor.moveToNext())
             }
         }
-
         return pointsList
-
     }//18
 
-    fun addSecondaryPoints (pointsToAdd : Int, tableName: String) : Long {
+    fun updatePoints (pointsToAdd : Int, tableName: String) : Long {
         val pointsValueList = getPointsValues(tableName)
         val lastPointsValueRow = pointsValueList[pointsValueList.size - 1]
-        val lastPointsValue = lastPointsValueRow.numberOfPoints
+        val lastPointsValue = lastPointsValueRow
         var newPointsValue = lastPointsValue + pointsToAdd
 
         if(newPointsValue >= 50){
             newPointsValue = 50
         }//28
+
+        if(areTherePoints(tableName)){
+            deleteFirstRow(tableName)
+        }
 
         val db = this.writableDatabase
 

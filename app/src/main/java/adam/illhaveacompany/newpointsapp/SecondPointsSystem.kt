@@ -1,57 +1,51 @@
 package adam.illhaveacompany.newpointsapp
 
+import android.app.Activity
+import android.content.Context
 import android.content.Intent
+import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import com.google.zxing.integration.android.IntentIntegrator
-import kotlinx.android.synthetic.main.activity_points_system.*
+import kotlinx.android.synthetic.main.activity_los_amigos_points.*
 
-class PointsSystem : AppCompatActivity() {
+class SecondPointsSystem : AppCompatActivity() {
 
-    val numberOfPointsAllowed = 5
-    val thisTable = "SecondPointsTable"
+    private val numberOfPointsAllowed = 5
+    private val thisTable = "SecondPointsTable"
     private val methodsHandler = Methods()
-    val qrCode = "BBB"
-    val pointsToAdd = 0
-    val toastMessage = "Please Work"
+    private val qrCode = "AAA"
+    private val context: Context = this
+    private val thisActivity: Activity = this
+    private val usingNumberPicker = false
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_points_system)
+        setContentView(R.layout.activity_second_points_system)
         scanBtn.setOnClickListener{
             methodsHandler.doneWithShowingSpinner = false
         }//27
 
-        methodsHandler.setVariablesInMethods(numberOfPointsAllowed,thisTable, qrCode, toastMessage)
-
-        methodsHandler.toast(this)
-
-
-
+        methodsHandler.setVariablesInMethods(numberOfPointsAllowed,thisTable, context, thisActivity, usingNumberPicker)
 
         methodsHandler.showButtonIfUserHasFiftyPoints(
-            redeemPointsBtn,
-            this,
-            numberOfPointsAllowed
+            redeemPointsBtn
         )
 
         methodsHandler.setProgressBarAndPointsNumber(
-            methodsHandler.getPointsValueFromDb(
-                this
-            ), progressBar, pointsNumberTextView, numberOfPointsAllowed
+            methodsHandler.getPointsValueFromDb(), progressBar, pointsNumberTextView
         )
 
 
         scanBtn.setOnClickListener{
-            methodsHandler.show(this, this, numberOfPointsAllowed)
+            methodsHandler.startPointsAddingProcess()
         }
 
         redeemPointsBtn.setOnClickListener {
             methodsHandler.redeemPoints(
-                thisTable, progressBar, pointsNumberTextView,
-                redeemPointsBtn, this, numberOfPointsAllowed
+                progressBar, pointsNumberTextView,
+                redeemPointsBtn
             )
         }
 
@@ -62,10 +56,10 @@ class PointsSystem : AppCompatActivity() {
         if (result != null) {
             if (result.contents != null) {
                 if(result.contents == qrCode) {
-                   methodsHandler.qrScanSuccess(
-                       this, application, redeemPointsBtn, numberOfPointsAllowed,
-                       pointsNumberTextView, progressBar
-                   )
+                    methodsHandler.qrScanSuccess(
+                        redeemPointsBtn,
+                        pointsNumberTextView, progressBar
+                    )
                 }else {
                     Toast.makeText(this, "Barcode Not Recognized", Toast.LENGTH_LONG).show()
                 }
