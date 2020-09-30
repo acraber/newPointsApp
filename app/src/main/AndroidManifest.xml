@@ -13,8 +13,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.NoActionBar">
-        <activity android:name=".PointsSystem"></activity>
-        <!-- //3 changin to noactionbar theme -->
+        <activity android:name=".WetzelsPretzelsActivity"></activity>
+        <activity android:name=".StoreList" />
+        <activity android:name=".SecondPointsSystem" />
+        <activity android:name=".LosAmigosPointsActivity" /> <!-- //3 changin to noactionbar theme -->
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
